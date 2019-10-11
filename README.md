@@ -16,7 +16,7 @@ Example configuration
 ```
 http {
     # Set a random UUID to $request_id.
-    uuid4 $request_id;
+    set_uuid4 $request_id;
     # Output the $request_id to our access log.
     log_format combined "$remote_addr ... $http_user_agent $request_id";
 }
@@ -29,9 +29,9 @@ In this example, `$request_id` contains a UUID string such as
 Directives
 ----------
 
-### uuid4
+### set_uuid4
 
-Syntax: `uuid4 VARIABLE`  
+Syntax: `set_uuid4 VARIABLE`  
 Context: http, server, location
 
 Generates a version-4 UUID and assigns it to the specified variable.
