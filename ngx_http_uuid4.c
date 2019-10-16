@@ -1,6 +1,6 @@
 /* (C) 2015 Cybozu.  All rights reserved. */
 
-#include "ndk_set_var.h"
+#include <ngx_http.h>
 #include "mt19937/mt64.h"
 
 #define UUID_STR_LENGTH 36
