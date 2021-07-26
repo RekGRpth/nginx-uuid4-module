@@ -1,38 +1,16 @@
 /* (C) 2015 Cybozu.  All rights reserved. */
 
 #include <ngx_http.h>
-#include "mt19937/mt64.h"
+#include <uuid/uuid.h>
 
 #define UUID_STR_LENGTH 36
-#define SEED_LENGTH 312
-
-static int mt_initialized = 0;
-
-static ngx_int_t initialize_mt(ngx_http_request_t *r) {
-    unsigned long long  seed[SEED_LENGTH];
-    FILE *f = fopen("/dev/urandom", "r");
-    if (!f) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!fopen"); return NGX_ERROR; }
-    size_t n = fread(seed, sizeof(unsigned long long), SEED_LENGTH, f);
-    if (n < SEED_LENGTH) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "fread < SEED_LENGTH"); fclose(f); return NGX_ERROR; }
-    fclose(f);
-    init_by_array64(seed, SEED_LENGTH);
-    return NGX_OK;
-}
 
 static ngx_int_t ngx_http_uuid4_func(ngx_http_request_t *r, ngx_str_t *val) {
-    if (!mt_initialized) {
-        if (initialize_mt(r) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "initialize_mt != NGX_OK"); return NGX_ERROR; }
-        mt_initialized = 1;
-    }
-    uint64_t upper = (uint64_t)genrand64_int64();
-    uint64_t lower = (uint64_t)genrand64_int64();
-    upper &= ~((1ULL << 12) | (1ULL << 13) | (1ULL << 15));
-    upper |= (1ULL << 14);
-    lower &= ~(1ULL << 62);
-    lower |= (1ULL << 63);
+    if (!(val->data = ngx_pnalloc(r->pool, UUID_STR_LENGTH + 1))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
     val->len = UUID_STR_LENGTH;
-    if (!(val->data = ngx_pnalloc(r->pool, UUID_STR_LENGTH))) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!ngx_pnalloc"); return NGX_ERROR; }
-    ngx_snprintf(val->data, UUID_STR_LENGTH, "%08uxL-%04uxL-%04uxL-%04uxL-%012uxL", upper >> 32, (upper >> 16) & 0xFFFFULL, upper & 0xFFFFULL, lower >> 48, lower & 0xFFFFFFFFFFFFULL);
+    uuid_t uu;
+    uuid_generate_random(uu);
+    uuid_unparse(uu, (char *)val->data);
     return NGX_OK;
 }
 
