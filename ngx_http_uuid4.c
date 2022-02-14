@@ -1,6 +1,6 @@
 /* (C) 2015 Cybozu.  All rights reserved. */
 
-#include <ndk_set_var.h>
+#include <ndk.h>
 #include <ngx_http.h>
 #include <uuid/uuid.h>
 
